@@ -52,31 +52,19 @@ echo "apparmor hold" | dpkg --set-selections
 apt-get update
 apt-get dist-upgrade -y
 
-# development and build tools
-apt-get install -y build-essential
 
-# we need curl to fetch rubygems
-apt-get install -y curl
+# ruby 1.9
+apt-add-repository ppa:brightbox/ruby-ng-experimental
+apt-get update
+apt-get install ruby1.9.3 ruby-switch
 
-# ruby dependencies
-apt-get install -y zlib1g-dev libssl-dev libreadline5-dev
 
-# ruby
-apt-get install -y ruby1.8 irb1.8 libopenssl-ruby1.8 libshadow-ruby1.8 ruby1.8-dev
-
-# rubygems
-curl -L 'http://production.cf.rubygems.org/rubygems/rubygems-1.8.17.tgz' | tar xvzf -
-cd rubygems* && ruby1.8 setup.rb --no-ri --no-rdoc
-
-# rdoc and rdoc-data, required for rvm later
-gem1.8 install rdoc rdoc-data --no-rdoc --no-ri
+# rdoc, required for rvm later
+gem install rdoc --no-rdoc --no-ri
 
 # chef
-gem1.8 install chef -v 0.10.8 --no-rdoc --no-ri
+gem install chef -v 0.10.8 --no-rdoc --no-ri
 
-# symlink ruby and gem commands so chef can find them
-ln -s /usr/bin/ruby1.8 /usr/bin/ruby
-ln -s /usr/bin/gem1.8 /usr/bin/gem
 
 
 # setup the chef-solo paths
@@ -90,7 +78,9 @@ echo '       Running Chef      '
 echo '-------------------------'
 
 # run chef-solo
-chef-solo -c /var/chef/config/chef-solo.rb -j $NODE_JSON_URL -r $CHEF_COOKBOOKS_URL
+chef-solo -c /var/chef/config/chef-solo.rb \
+  -j $NODE_JSON_URL \
+  -r $CHEF_COOKBOOKS_URL
 
 # all done
 exit 0
