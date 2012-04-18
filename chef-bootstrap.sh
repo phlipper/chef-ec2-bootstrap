@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# EXPORTS
-
 echo '-------------------------'
 echo '   Bootstrapping Chef    '
 echo '-------------------------'
@@ -36,6 +34,7 @@ if [ -z "$ENV" ]; then
   exit 2
 fi
 
+
 # setup urls for chef data
 export CHEF_BASE_URL="https://s3.amazonaws.com/chef.phlippers.net/$STACK"
 export NODE_JSON_URL="$CHEF_BASE_URL/nodes/$NODE-$ENV.json"
@@ -48,12 +47,21 @@ export DEBIAN_FRONTEND=noninteractive
 # ignore apparmor
 echo "apparmor hold" | dpkg --set-selections
 
-# update the system
+# update the base system
 apt-get update
 apt-get dist-upgrade -y
 
 
-# ruby 1.9
+# check if we have /dev/sdb, unmount and reformat as xfs
+if test -b /dev/sdb; then
+  apt-get install xfsprogs
+  grep '/dev/sdb' /etc/mtab && \
+    umount `grep '/dev/sdb' /etc/mtab | cut -d ' ' -f 2`
+  mkfs.xfs -fn size=64k /dev/sdb
+fi
+
+
+# install ruby 1.9
 apt-add-repository ppa:brightbox/ruby-ng-experimental
 apt-get update
 apt-get install ruby1.9.3 ruby-switch
